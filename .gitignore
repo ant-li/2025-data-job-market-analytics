@@ -1,0 +1,20 @@
+# ========== DATA ==========
+data/
+*.csv
+*.parquet
+*.xlsx
+
+# ========== PYTHON ==========
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# ========== JUPYTER ==========
+.ipynb_checkpoints/
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
