@@ -7,7 +7,7 @@ MONTHS_PER_YEAR = 12
 
 
 def parse_salary_row(pay, rate):
-"""
+    """
     Parses salary text and converts it to annualized min/max values.
 
     Parameters:
