@@ -1,39 +1,15 @@
-# import re
-# import pandas as pd
-
-# def extract_skills(text: str, skills: list[str]) -> list[str]:
-#     """
-#     Return a list of skills from `skills` that appear in `text`.
-#     Handles 'r' as a special case to reduce false positives.
-#     """
-#     if pd.isna(text):
-#         return []
-
-#     s = str(text).lower()
-#     found = []
-
-#     for skill in skills:
-#         skill_l = skill.lower()
-
-#         if skill_l == "r":
-#             # Special handling for 'r' language:
-#             # - Not part of a longer word
-#             # - Not followed by & or /
-#             # Matches: " R ", "python, scala or R.", "R programming"
-#             # Avoids: "R&D", "R/GA"
-#             pattern = r"(?<![a-z0-9])r(?![a-z0-9&/])"
-#         else:
-#             pattern = r"\b" + re.escape(skill_l) + r"\b"
-
-#         if re.search(pattern, s):
-#             found.append(skill)
-
-#     return found
-
 import re
 import pandas as pd
 from typing import Dict, List
-from src.config import TECHNICAL_SKILL_ALIASES
+from src.config import TECHNICAL_SKILL_ALIASES, SOFT_SKILL_ALIASES
+
+def extract_soft_skills(text: str) -> set[str]:
+    text_l = text.lower()
+    found = set()
+    for pattern, canonical in SOFT_SKILL_ALIASES.items():
+        if pattern in text_l:
+            found.add(canonical)
+    return found
 
 
 def build_alias_lookup(alias_dict: Dict[str, List[str]]) -> Dict[str, str]:
@@ -48,19 +24,25 @@ def build_alias_lookup(alias_dict: Dict[str, List[str]]) -> Dict[str, str]:
     return lookup
 
 
-def build_skill_regex(alias_dict: Dict[str, List[str]]) -> re.Pattern:
-    """
-    Build one compiled regex that matches any skill alias in a case-insensitive way.
-    """
-    all_aliases: List[str] = []
+def build_skill_regex(alias_dict):
+
+    all_aliases = []
     for aliases in alias_dict.values():
         all_aliases.extend(aliases)
 
-    # Remove duplicates and sort by length (longer first to avoid partial overlaps)
     all_aliases = sorted(set(a.lower() for a in all_aliases), key=len, reverse=True)
 
-    pattern = r"\b(" + "|".join(re.escape(a) for a in all_aliases) + r")\b"
+    escaped = []
+    for a in all_aliases:
+        if a in {"c++", "c#", "c/c++"}:
+            # Special handling: do NOT wrap with word boundaries
+            escaped.append(re.escape(a))
+        else:
+            escaped.append(r"\b" + re.escape(a) + r"\b")
+
+    pattern = "(" + "|".join(escaped) + ")"
     return re.compile(pattern, flags=re.IGNORECASE)
+
 
 
 def extract_skills(text: str,
